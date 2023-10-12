@@ -134,9 +134,9 @@ In 2002, which states were observed at 7 or more locations? What about in 2010?
 
 
 ```{r}
-a = brfss |>filter(year == 2002) |> group_by(locationabbr,locationdesc) |> summarise(n=n()) |>
+a = brfss_smart2010 |>filter(year == 2002) |> group_by(locationabbr,locationdesc) |> summarise(n=n()) |>
   arrange(desc(n))
-b = brfss |>filter(year == 2002) |> group_by(locationabbr) |> summarise(n=n()) |>
+b = brfss_smart2010 |>filter(year == 2002) |> group_by(locationabbr) |> summarise(n=n()) |>
   arrange(desc(n))
 b1 = b |> filter((n/5) >= 7) 
 ```
@@ -145,9 +145,9 @@ b1 = b |> filter((n/5) >= 7)
 * In 2002, `r b |> filter((n/5) >= 7) |> count()` states were observed at 7 or more locations, they are `r b1 |> pull(locationabbr)`.
 
 ```{r}
-c = brfss |>filter(year == 2010) |> group_by(locationabbr,locationdesc) |> summarise(n=n()) |>
+c = brfss_smart2010 |>filter(year == 2010) |> group_by(locationabbr,locationdesc) |> summarise(n=n()) |>
   arrange(desc(n))
-d = brfss |>filter(year == 2010) |> group_by(locationabbr) |> summarise(n=n()) |>
+d = brfss_smart2010 |>filter(year == 2010) |> group_by(locationabbr) |> summarise(n=n()) |>
   arrange(desc(n))
 d1 = d |> filter((n/5) >= 7)
 ```
@@ -200,8 +200,8 @@ Load, tidy, merge, and otherwise organize the data sets. Your final dataset shou
 
 ```{r}
 demo = read_csv("./hw3_data/nhanes_covar.csv") |>
-  janitor::clean_names() |>
   janitor::row_to_names(row_number = 4) |>
+  janitor::clean_names() |>
   filter(age >= 21) |>
   drop_na() |>
   mutate(
@@ -209,8 +209,57 @@ demo = read_csv("./hw3_data/nhanes_covar.csv") |>
     education = recode(education, "1" = "less than high school", "2" = "high school equivalent", "3" = "more than high school"))
 
 accel = read_csv("./hw3_data/nhanes_accel.csv") |>
-  janitor::clean_names()
+  janitor::clean_names()|>
+  mutate(seqn = as.character(seqn))
   
 ```
 
+Produce a reader-friendly table for the number of men and women in each education category, and create a visualization of the age distributions for men and women in each education category. Comment on these items.
 
+```{r}
+table(demo$sex,demo$education) |>
+  knitr::kable()
+
+demo |>
+  group_by(sex,education) |>
+  ggplot(aes(x = age, y = education, color = education)) +
+  geom_density_ridges(scale = 0.6, alpha = 0.5) +
+  facet_grid(. ~ sex)
+  
+```
+* Compared to males, female participants have lower proportion of high school equivalent education; People with more than high school education ar more likely to get involved in this study.
+* Overall, male participants have higher heterogeneity in age across all educational level, especially among less than and equal high school education level compared with females. Age distribution is more sparse in more than high school education level compared with other two education levels bot for males and females.
+
+Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate across minutes to create a total activity variable for each participant. Plot these total activities (y-axis) against age (x-axis); your plot should compare men to women and have separate panels for each education level. Include a trend line or a smooth to illustrate differences. Comment on your plot.
+```{r}
+accel_long =  accel |>
+  pivot_longer(
+    -seqn,
+    names_to = "time",
+    values_to = "value"
+  ) 
+
+demo_accel = left_join(demo, accel_long, by = "seqn")
+
+demo_accel |>
+  group_by(seqn,age,sex,education) |>
+  summarise(total_act = sum(value)) |>
+  ggplot(aes(x= age, y = total_act, color = sex)) +
+  geom_point() +
+  geom_smooth(se = FALSE) +
+  facet_grid(. ~ education)
+  
+```
+
+Accelerometer data allows the inspection activity over the course of the day. Make a three-panel plot that shows the 24-hour activity time courses for each education level and use color to indicate sex. Describe in words any patterns or conclusions you can make based on this graph; including smooth trends may help identify differences
+```{r}
+demo_accel |>
+  ggplot(aes(x = time, y = value, color = sex)) +
+  geom_density() +
+  geom_smooth(se = FALSE) +
+  facet_grid(. ~ education)
+
+
+```
+
+* generally, the overall activity over the course of the day of participants decreases as their age become older. The effect of age on total activity is mitigated among the more than high school education level.  
