@@ -184,13 +184,17 @@ print(gp)
 Make a two-panel plot showing, for the years 2006, and 2010, distribution of data_value for responses (“Poor” to “Excellent”) among locations in NY State
 
 ```{r}
-a = brfss_smart2010 |> 
+brfss_smart2010 |> 
   filter(year %in% c(2006,2010) & locationabbr == "NY") |>
-  group_by(year,response) |> 
+  group_by(year,response, locationdesc) |> 
   summarize(mean = mean(data_value, rm.na=T)) |>
+  mutate(response = forcats::fct_relevel(response, res_order)) |>
   ggplot(aes(x = response, y = mean, color = response)) +
-  geom_point(alpha = .5, size =5) +
-  facet_grid(. ~ year)
+  geom_boxplot(alpha = .5) +
+  facet_grid(. ~ year) +
+  labs(title = "distribution of data_value for responses (“Poor” to “Excellent”) among locations in NY State for 2006 and 2010") +
+  theme(
+    axis.text.x = element_text(angle = 60, hjust = 1))
   
 ```
 
