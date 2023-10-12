@@ -160,9 +160,57 @@ Construct a dataset that is limited to Excellent responses, and contains, year, 
 brfss = brfss_smart2010 |> 
   filter(response == "Excellent") |>
   group_by(year,locationabbr) |>
-  summarise(data_value_within_state = mean(data_value,rm.na = T))
+  summarise(data_value_within_state = mean(data_value,rm.na = T)) 
+
+gp_brfss = brfss |>
+  ggplot(aes(x = locationabbr, y = data_value_within_state, color= factor(year), group = factor(year))) + geom_line()+
+  labs(title = "Average data value within each state across years from 2002 to 2010") +
+  theme(
+    axis.text.x = element_text(angle = 60, hjust = 1))
+
+print(gp_brfss)
+  
+
+
+gp = brfss |>
+  ggplot(aes(x = year, y = data_value_within_state, color= locationabbr, group = locationabbr)) + geom_line()+
+  labs(title = "Average data value within each state across years from 2002 to 2010")
+
+print(gp)
   
 ```
 
 
 Make a two-panel plot showing, for the years 2006, and 2010, distribution of data_value for responses (“Poor” to “Excellent”) among locations in NY State
+
+```{r}
+a = brfss_smart2010 |> 
+  filter(year %in% c(2006,2010) & locationabbr == "NY") |>
+  group_by(year,response) |> 
+  summarize(mean = mean(data_value, rm.na=T)) |>
+  ggplot(aes(x = response, y = mean, color = response)) +
+  geom_point(alpha = .5, size =5) +
+  facet_grid(. ~ year)
+  
+```
+
+# Problem 3
+
+Load, tidy, merge, and otherwise organize the data sets. Your final dataset should include all originally observed variables; exclude participants less than 21 years of age, and those with missing demographic data; and encode data with reasonable variable classes (i.e. not numeric, and using factors with the ordering of tables and plots in mind).
+
+```{r}
+demo = read_csv("./hw3_data/nhanes_covar.csv") |>
+  janitor::clean_names() |>
+  janitor::row_to_names(row_number = 4) |>
+  filter(age >= 21) |>
+  drop_na() |>
+  mutate(
+    sex = recode(sex, "1" = "male", "2" = "female"),
+    education = recode(education, "1" = "less than high school", "2" = "high school equivalent", "3" = "more than high school"))
+
+accel = read_csv("./hw3_data/nhanes_accel.csv") |>
+  janitor::clean_names()
+  
+```
+
+
