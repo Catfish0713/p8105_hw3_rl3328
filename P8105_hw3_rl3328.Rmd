@@ -2,7 +2,7 @@
 title: "P8105_hw3_rl3328"
 author: "Ruixi Li"
 date: "2023-10-06"
-output: html_document
+output: github_document
 ---
 
 This assignment reinforces ideas in Visualization and EDA.
