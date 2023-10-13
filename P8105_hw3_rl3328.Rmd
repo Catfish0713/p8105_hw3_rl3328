@@ -162,14 +162,7 @@ brfss = brfss_smart2010 |>
   group_by(year,locationabbr) |>
   summarise(data_value_within_state = mean(data_value,rm.na = T)) 
 
-gp_brfss = brfss |>
-  ggplot(aes(x = locationabbr, y = data_value_within_state, color= factor(year), group = factor(year))) + geom_line()+
-  labs(title = "Average data value within each state across years from 2002 to 2010") +
-  theme(
-    axis.text.x = element_text(angle = 60, hjust = 1))
 
-print(gp_brfss)
-  
 
 
 gp = brfss |>
@@ -189,7 +182,7 @@ brfss_smart2010 |>
   group_by(year,response, locationdesc) |> 
   summarize(mean = mean(data_value, rm.na=T)) |>
   mutate(response = forcats::fct_relevel(response, res_order)) |>
-  ggplot(aes(x = response, y = mean, color = response)) +
+  ggplot(aes(x = response, y = mean)) +
   geom_boxplot(alpha = .5) +
   facet_grid(. ~ year) +
   labs(title = "distribution of data_value for responses (“Poor” to “Excellent”) among locations in NY State for 2006 and 2010") +
@@ -210,7 +203,8 @@ demo = read_csv("./hw3_data/nhanes_covar.csv") |>
   drop_na() |>
   mutate(
     sex = recode(sex, "1" = "male", "2" = "female"),
-    education = recode(education, "1" = "less than high school", "2" = "high school equivalent", "3" = "more than high school"))
+    education = recode(education, "1" = "less than high school", "2" = "high school equivalent", "3" = "more than high school"),
+    age = as.numeric(age))
 
 accel = read_csv("./hw3_data/nhanes_accel.csv") |>
   janitor::clean_names()|>
@@ -225,10 +219,18 @@ table(demo$sex,demo$education) |>
   knitr::kable()
 
 demo |>
-  group_by(sex,education) |>
-  ggplot(aes(x = age, y = education, color = education)) +
-  geom_density_ridges(scale = 0.6, alpha = 0.5) +
-  facet_grid(. ~ sex)
+  ggplot(aes(x = age, fill = sex)) +
+  geom_density(alpha=0.5) +
+  facet_grid(. ~ education)
+
+
+
+demo |>
+  ggplot(aes(x=age, y=education, color=sex))+
+  geom_density_ridges(scale = 0.6,alpha=.5)
+
+
+ 
   
 ```
 * Compared to males, female participants have lower proportion of high school equivalent education; People with more than high school education ar more likely to get involved in this study.
@@ -249,8 +251,7 @@ demo_accel |>
   group_by(seqn,age,sex,education) |>
   summarise(total_act = sum(value)) |>
   ggplot(aes(x= age, y = total_act, color = sex)) +
-  geom_point() +
-  geom_smooth(se = FALSE) +
+  geom_smooth(aes(group =sex), se = FALSE) +
   facet_grid(. ~ education)
   
 ```
@@ -258,9 +259,9 @@ demo_accel |>
 Accelerometer data allows the inspection activity over the course of the day. Make a three-panel plot that shows the 24-hour activity time courses for each education level and use color to indicate sex. Describe in words any patterns or conclusions you can make based on this graph; including smooth trends may help identify differences
 ```{r}
 demo_accel |>
-  ggplot(aes(x = time, y = value, color = sex)) +
-  geom_density() +
-  geom_smooth(se = FALSE) +
+  ggplot(aes(x = time, y = value,group=seqn, color = sex)) +
+  geom_line() +
+  geom_smooth(aes(group =sex), se = FALSE) +
   facet_grid(. ~ education)
 
 
