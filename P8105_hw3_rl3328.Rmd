@@ -91,7 +91,7 @@ instacart |>
 
 Finally is a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week. This table has been formatted in an untidy manner for human readers. Pink Lady Apples are generally purchased slightly earlier in the day than Coffee Ice Cream, with the exception of day 5.
 
-```{r}
+```{r, message=FALSE}
 instacart |>
   filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) |>
   group_by(product_name, order_dow) |>
@@ -101,7 +101,7 @@ instacart |>
     values_from = mean_hour) |>
   knitr::kable(digits = 2)
 ```
- I did Problem by myself, but after comparing it with Professor Jeff's answer, I think his is more concise and logical. So, I changed my answer.
+I did Problem by myself, but after comparing it with Professor Jeff's answer, I think his is more concise and logical. So, I changed my answer.
 
 
 
@@ -139,8 +139,8 @@ b = brfss_smart2010 |>filter(year == 2002) |> group_by(locationabbr) |> summaris
 b1 = b |> filter((n/5) >= 7) 
 ```
 
-** I found that every location(with county) appears 5 times per year in this dataset. So, I can calculate how many locations a state was observed by knowing the times each state appears per year.
-** In 2002, `r b |> filter((n/5) >= 7) |> count()` states were observed at 7 or more locations, they are `r b1 |> pull(locationabbr)`.
+* I found that every location(with county) appears 5 times per year in this dataset. So, I can calculate how many locations a state was observed by knowing the times each state appears per year.
+* In 2002, `r b |> filter((n/5) >= 7) |> count()` states were observed at 7 or more locations, they are `r b1 |> pull(locationabbr)`.
 
 ```{r}
 c = brfss_smart2010 |>filter(year == 2010) |> group_by(locationabbr,locationdesc) |> summarise(n=n()) |>
@@ -150,11 +150,11 @@ d = brfss_smart2010 |>filter(year == 2010) |> group_by(locationabbr) |> summaris
 d1 = d |> filter((n/5) >= 7)
 ```
 
-** Similarly, in 2010, `r d |> filter((n/5) >= 7) |>count()` states were observed at 7 or more locations, they are `r d1 |> pull(locationabbr)`.
+* Similarly, in 2010, `r d |> filter((n/5) >= 7) |>count()` states were observed at 7 or more locations, they are `r d1 |> pull(locationabbr)`.
 
 2. Construct a dataset that is limited to Excellent responses, and contains, year, state, and a variable that averages the data_value across locations within a state. Make a “spaghetti” plot of this average value over time within a state (that is, make a plot showing a line for each state across years – the geom_line geometry and group aesthetic will help).
 
-```{r}
+```{r, message=FALSE}
 brfss = brfss_smart2010 |> 
   filter(response == "Excellent") |>
   group_by(year,locationabbr) |>
@@ -174,7 +174,7 @@ print(gp)
 
 3. Make a two-panel plot showing, for the years 2006, and 2010, distribution of data_value for responses (“Poor” to “Excellent”) among locations in NY State
 
-```{r}
+```{r, message=FALSE}
 brfss_smart2010 |> 
   filter(year %in% c(2006,2010) & locationabbr == "NY") |>
   group_by(year,response, locationdesc) |> 
@@ -195,7 +195,7 @@ brfss_smart2010 |>
 
 1. Load, tidy, merge, and otherwise organize the data sets. Your final dataset should include all originally observed variables; exclude participants less than 21 years of age, and those with missing demographic data; and encode data with reasonable variable classes (i.e. not numeric, and using factors with the ordering of tables and plots in mind).
 
-```{r}
+```{r, message=FALSE}
 demo = read_csv("./hw3_data/nhanes_covar.csv") |>
   janitor::row_to_names(row_number = 4) |>
   janitor::clean_names() |>
@@ -215,7 +215,7 @@ accel = read_csv("./hw3_data/nhanes_accel.csv") |>
 
 2. Produce a reader-friendly table for the number of men and women in each education category, and create a visualization of the age distributions for men and women in each education category. Comment on these items.
 
-```{r}
+```{r, message=FALSE}
 table(demo$sex,demo$education) |>
   knitr::kable()
 
@@ -241,7 +241,7 @@ demo |>
 * For age distribution plot: Overall, age distribution is more sparse in males than females. Male participants have have two peak in age density plot across all educational levels whereas female only have two peaks in "more than high school" education level. Males have similar age distribution across different educational levels. Female have more elder participants(aged 75 or more) among "less than high school & high school equivalent" levels but have more younger participants(about 30) in "more than high school" education level. 
 
 3. Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate across minutes to create a total activity variable for each participant. Plot these total activities (y-axis) against age (x-axis); your plot should compare men to women and have separate panels for each education level. Include a trend line or a smooth to illustrate differences. Comment on your plot.
-```{r}
+```{r, message=FALSE}
 #convert to long format
 accel_long =  accel |>
   pivot_longer(
@@ -265,7 +265,7 @@ demo_accel |>
 * In "less than high school" level,females have higher total activity than males in their early age(before 40) but have lower total activity than males in their later age(after 40); In "high school equivalent" level, females have lower total activity than males in their early age(before 25) but have higher total activity than males in their later age(after 25). Most of the time for females who have "high school equivalent" or "more than high school" , they have higher total activity than males.
 
 4. Accelerometer data allows the inspection activity over the course of the day. Make a three-panel plot that shows the 24-hour activity time courses for each education level and use color to indicate sex. Describe in words any patterns or conclusions you can make based on this graph; including smooth trends may help identify differences
-```{r}
+```{r, message=FALSE}
 demo_accel |>
   ggplot(aes(x = time, y = value, group=seqn, color = sex)) +
   geom_line() +
